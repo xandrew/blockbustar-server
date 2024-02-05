@@ -75,8 +75,15 @@ io.on('connection', (socket) => {
         joinRoom(playgroundRoom);
     });
 
-    socket.on('disconnect', () => {
+    socket.on('disconnect', (reason, details) => {
         console.log('user disconnected');
+        console.log(reason);
+        console.log(details);
+        if (details !== undefined) {
+            console.log(details.message);
+            console.log(details.description);
+            console.log(details.context);
+        }
         leaveRoom()
     });
 
