@@ -52,14 +52,15 @@ io.on('connection', (socket) => {
         }
     }
     
-    socket.on('create playground', (playgroundMetaJson) => {
-        const playgroundMeta = JSON.parse(playgroundMetaJson);
+    socket.on('create playground', (playgroundRequestJson) => {
+        const playgroundRequest = JSON.parse(playgroundMetaJson);
+        const playgroundMeta = playgroundRequest.playground;
         // TODO: not very thread safe.
         const newRoom = 'room' + nextRoom;
         nextRoom += 1;
         playgroundMeta.room = newRoom;
         playgrounds.push(playgroundMeta);
-        lastFreeBlocks[newRoom] = '[]';
+        lastFreeBlocks[newRoom] = JSON.stringify(playgroundRequest.initialState);
         joinRoom(newRoom);
         // Should ideally only emit to nearby players. TODO
         io.emit('playgrounds', JSON.stringify(playgrounds));
