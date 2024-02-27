@@ -32,9 +32,10 @@ io.on('connection', (socket) => {
         room = newRoom;
         socket.join(room);
         if (gameState[room] !== undefined) {
-            socket.emit('game state update', gameState[room])
+            socket.emit('game state update', gameState[room]);
         }
-        socket.emit('free blocks update', lastFreeBlocks[room])
+        socket.emit('free blocks update', lastFreeBlocks[room]);
+        console.log('Sent free blocks update to new joiner: ' + lastFreeBlocks[room]);
         if (physicsServer[room] === undefined) {
             console.log('Asking new user to be server');
             socket.emit('need server', '');
