@@ -53,6 +53,7 @@ io.on('connection', (socket) => {
     }
     
     socket.on('create playground', (playgroundRequestJson) => {
+        console.log('New playground requested: ' + playgroundRequestJson);
         const playgroundRequest = JSON.parse(playgroundMetaJson);
         const playgroundMeta = playgroundRequest.playground;
         // TODO: not very thread safe.
