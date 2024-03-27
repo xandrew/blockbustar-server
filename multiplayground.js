@@ -78,6 +78,10 @@ io.on('connection', (socket) => {
         joinRoom(playgroundRoom);
     });
 
+    socket.on('leave playground', (playgroundRoom) => {
+        leaveRoom();
+    });
+
     socket.on('disconnect', (reason, details) => {
         console.log('user disconnected');
         console.log(reason);
@@ -87,7 +91,7 @@ io.on('connection', (socket) => {
             console.log(details.description);
             console.log(details.context);
         }
-        leaveRoom()
+        leaveRoom();
     });
 
     socket.on('i am server', (_) => {
@@ -98,24 +102,6 @@ io.on('connection', (socket) => {
             socket.emit('back off')
             console.log(
                 'Duplicate or out of room serving offer - asking to back off');
-        }
-    });
-
-    socket.on('delete block', (msg) => {
-        if ((room !== undefined) && physicsServer[room]) {
-            physicsServer[room].emit('delete block', msg);
-        }
-    });
-
-    socket.on('add block', (msg) => {
-        if ((room !== undefined) && physicsServer[room]) {
-            physicsServer[room].emit('add block', msg);
-        }
-    });
-
-    socket.on('new game', (msg) => {
-        if ((room !== undefined) && physicsServer[room]) {
-            physicsServer[room].emit('new game', msg);
         }
     });
 
@@ -130,9 +116,14 @@ io.on('connection', (socket) => {
         }
     });
 
-    socket.on('user state update', (msg) => {
+    socket.on('user report', (msg) => {
+        const report = JSON.parse(msg);
+
         if (room !== undefined) {
-            io.to(room).emit('user state update', msg);
+            io.to(room).emit('user state update', JSON.stringify(report.userState));
+            if (physicsServer[room]) {
+                physicsServer[room].emit('user report', msg);
+            }
         }
     });
 
