@@ -126,17 +126,6 @@ io.on('connection', (socket) => {
             }
         }
     });
-
-    socket.on('game state update', (msg) => {
-        if ((room !== undefined) && (socket === physicsServer[room])) {
-            gameState[room] = msg;
-            io.to(room).emit('game state update', msg);
-        } else {
-            console.log(
-                'Game state update from non-server-of-room - asking to back off');
-            socket.emit('back off')
-        }
-    });
 });
 
 server.listen(port, () => {
