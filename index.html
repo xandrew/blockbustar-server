@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
   <head>
-    <title>Socket.IO chat</title>
+    <title>BlockBustar status page</title>
     <style>
       body { margin: 0; padding-bottom: 3rem; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
 
@@ -10,9 +10,6 @@
       #input:focus { outline: none; }
       #form > button { background: #333; border: none; padding: 0 1rem; margin: 0.25rem; border-radius: 3px; outline: none; color: #fff; }
 
-      #messages { list-style-type: none; margin: 0; padding: 0; }
-      #messages > li { padding: 0.5rem 1rem; }
-      #messages > li:nth-child(odd) { background: #efefef; }
     </style>
   </head>
   <body>
@@ -26,18 +23,20 @@
       var form = document.getElementById('form');
       var input = document.getElementById('input');
 
-      form.addEventListener('submit', function(e) {
+      /*form.addEventListener('submit', function(e) {
 	  e.preventDefault();
 	  if (input.value) {
 	      socket.emit('chat message', input.value);
 	      input.value = '';
 	  }
-      });
-      socket.on('chat message', function(msg) {
-	  var item = document.createElement('li');
+          });*/
+      socket.emit('get playgrounds', '');
+      socket.on('playgrounds', function(msg) {
+          input.value = msg;
+	  /*var item = document.createElement('li');
 	  item.textContent = msg;
 	  messages.appendChild(item);
-	  window.scrollTo(0, document.body.scrollHeight);
+	  window.scrollTo(0, document.body.scrollHeight);*/
       });
     </script>
   </body>
