@@ -68,9 +68,10 @@ io.on('connection', (socket) => {
         io.emit('playgrounds', JSON.stringify(playgrounds));
     });
 
-    socket.on('get playgrounds', (_) => {
+    socket.on('get playgrounds', (msg) => {
         // This should ideally only report close ones. TODO
-        console.log('Client requested playgrounds. Sent him JSON: ' + JSON.stringify(playgrounds));
+        console.log('Client requested playgrounds from: ' + msg);
+        console.log('Sent him JSON: ' + JSON.stringify(playgrounds));
         socket.emit('playgrounds', JSON.stringify(playgrounds));
     });
 
