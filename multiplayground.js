@@ -11,7 +11,7 @@ const io = new Server(server);
 
 const physicsServer = {};
 const lastFreeBlocks = {};
-const gameState = {};
+const lastConfigs = {};
 
 const playgrounds = []
 
@@ -19,6 +19,10 @@ var nextRoom = 0;
 
 app.get('/', (req, res) => {
     res.sendFile(__dirname + '/index.html');
+});
+
+app.get('/playground', (req, res) => {
+    res.sendFile(__dirname + '/playground.html');
 });
 
 io.on('connection', (socket) => {
@@ -31,11 +35,11 @@ io.on('connection', (socket) => {
         leaveRoom();
         room = newRoom;
         socket.join(room);
-        if (gameState[room] !== undefined) {
-            socket.emit('game state update', gameState[room]);
-        }
         socket.emit('free blocks update', lastFreeBlocks[room]);
         console.log('Sent free blocks update to new joiner: ' + lastFreeBlocks[room]);
+        socket.emit('new config', lastConfigs[room]);
+        console.log('Sent config to new joiner: ' + lastConfigs[room]);
+
         if (physicsServer[room] === undefined) {
             console.log('Asking new user to be server');
             socket.emit('need server', '');
@@ -63,6 +67,8 @@ io.on('connection', (socket) => {
         playgroundMeta.room = newRoom;
         playgrounds.push(playgroundMeta);
         lastFreeBlocks[newRoom] = JSON.stringify(playgroundRequest.initialState);
+        lastConfigs[newRoom] = JSON.stringify(playgroundRequest.initialConfig);
+        
         joinRoom(newRoom);
         // Should ideally only emit to nearby players. TODO
         io.emit('playgrounds', JSON.stringify(playgrounds));
@@ -114,6 +120,14 @@ io.on('connection', (socket) => {
             console.log(
                 'Free blocks update from non-server-of-room - asking to back off');
             socket.emit('back off')
+        }
+    });
+
+    socket.on('new config', (msg) => {
+        if (room !== undefined) {
+            lastConfigs[room] = msg
+            io.to(room).emit('new config', msg);
+            console.log('New config: ' + msg);
         }
     });
 

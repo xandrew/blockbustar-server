@@ -40,7 +40,7 @@
 	      item.textContent = JSON.stringify(ps[i]);
 	      messages.appendChild(item);
 	      item.addEventListener("click", function() {
-		  console.log("Hello World!" + ps[i].room);
+                  window.location.href = "/playground?playground=" + ps[i].room
 	      });
 	      window.scrollTo(0, document.body.scrollHeight);
 	  }

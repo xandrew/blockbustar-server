@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>BlockBustar status page</title>
+  </head>
+  <body>
+    <form id="configForm" action="">
+      <p>Playground config</p>
+      <textarea id="config" autocomplete="off" rows="8" cols="80">
+      </textarea>
+      <button>Send new config</button>
+    </form>
+    <pre id='simulationTime'>
+    </pre>
+    <pre id='state'>
+    </pre>
+    <pre id='blocks'>
+    </pre>
+    <script src="/socket.io/socket.io.js"></script>
+    <script>
+      const urlParams = new URLSearchParams(window.location.search);
+      const playgroundId = urlParams.get('playground');
+
+      var configForm = document.getElementById('configForm');
+      var configInput = document.getElementById('config');
+      
+      const simulationTime = document.getElementById('simulationTime');
+      const stateField = document.getElementById('state');
+      const blocks = document.getElementById('blocks');
+
+      var socket = io();
+      socket.emit('join playground', playgroundId);
+
+      configForm.addEventListener('submit', function(e) {
+	  e.preventDefault();
+	  socket.emit('new config', configInput.value);
+      });
+      
+      socket.on('new config', function(msg) {
+          configInput.value = JSON.stringify(JSON.parse(msg), null, 2);
+      });
+
+
+      socket.on('free blocks update', function(msg) {
+          const serverState = JSON.parse(msg);
+          simulationTime.innerText = JSON.stringify(serverState.simulationTimeS, null, 2);
+          stateField.innerText = JSON.stringify(serverState.gameState, null, 2);
+          blocks.innerText = JSON.stringify(serverState.blocks, null, 2);
+          
+      });
+    </script>
+  </body>
+</html>
+
+
+
