@@ -14,6 +14,8 @@
     </pre>
     <pre id='state'>
     </pre>
+    <pre id='users'>
+    </pre>
     <pre id='blocks'>
     </pre>
     <script src="/socket.io/socket.io.js"></script>
@@ -26,7 +28,10 @@
       
       const simulationTime = document.getElementById('simulationTime');
       const stateField = document.getElementById('state');
+      const users = document.getElementById('users');
       const blocks = document.getElementById('blocks');
+
+      const userMap = {};
 
       var socket = io();
       socket.emit('join playground', playgroundId);
@@ -47,6 +52,11 @@
           stateField.innerText = JSON.stringify(serverState.gameState, null, 2);
           blocks.innerText = JSON.stringify(serverState.blocks, null, 2);
           
+      });
+      socket.on('user state update', function(msg) {
+          const userState = JSON.parse(msg);
+          userMap[userState.userId] = userState;
+          users.innerText = JSON.stringify(userMap, null, 2);
       });
     </script>
   </body>
