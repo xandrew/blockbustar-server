@@ -17,10 +17,12 @@ const playgrounds = []
 
 var nextRoom = 0;
 
+const playgroundLifeTime = (23 * 60 + 50) * 60 * 1000;
+
 function removeOldPlaygrounds() {
     const now = Date.now();
     for (let i = playgrounds.length - 1; i >= 0; i--) {
-        if (now > playgrounds[i].creationServerTimeMillis + 5000) {
+        if (now > playgrounds[i].creationServerTimeMillis + playgroundLifeTime) {
             playgrounds.splice(i, 1);
         }
     }
