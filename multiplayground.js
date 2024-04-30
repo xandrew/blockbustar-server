@@ -17,6 +17,15 @@ const playgrounds = []
 
 var nextRoom = 0;
 
+function removeOldPlaygrounds() {
+    const now = Date.now();
+    for (let i = playgrounds.length - 1; i >= 0; i--) {
+        if (now > playgrounds[i].creationServerTimeMillis + 5000) {
+            playgrounds.splice(i, 1);
+        }
+    }
+}
+
 app.get('/', (req, res) => {
     res.sendFile(__dirname + '/index.html');
 });
@@ -65,6 +74,7 @@ io.on('connection', (socket) => {
         const newRoom = 'room' + nextRoom;
         nextRoom += 1;
         playgroundMeta.room = newRoom;
+        playgroundMeta.creationServerTimeMillis = Date.now();
         playgrounds.push(playgroundMeta);
         lastFreeBlocks[newRoom] = JSON.stringify(playgroundRequest.initialState);
         lastConfigs[newRoom] = JSON.stringify(playgroundRequest.initialConfig);
@@ -75,6 +85,9 @@ io.on('connection', (socket) => {
     });
 
     socket.on('get playgrounds', (msg) => {
+        removeOldPlaygrounds();
+
+        const request = JSON.parse(msg);
         // This should ideally only report close ones. TODO
         console.log('Client requested playgrounds from: ' + msg);
         console.log('Sent him JSON: ' + JSON.stringify(playgrounds));
