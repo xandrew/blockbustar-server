@@ -15,9 +15,13 @@ const lastConfigs = {};
 
 const playgrounds = []
 
+const playgroundListeners = {};
+
 var nextRoom = 0;
 
 const playgroundLifeTime = (23 * 60 + 50) * 60 * 1000;
+
+var nextConnectionId = 0;
 
 function removeOldPlaygrounds() {
     const now = Date.now();
@@ -29,6 +33,34 @@ function removeOldPlaygrounds() {
     }
 }
 
+function playgroundListener(socket, clientLocation) {
+    function closeEnough(location) {
+	const cLat = clientLocation.latitude * Math.PI / 180;
+	const cLon = clientLocation.longitude * Math.PI / 180;
+	const pLat = location.latitude * Math.PI / 180;
+	const pLon = location.longitude * Math.PI / 180;
+	const distance = Math.acos(
+                Math.sin(cLat)*Math.sin(pLat) +
+                Math.cos(cLat)*Math.cos(pLat) * Math.cos(cLon - pLon)
+            ) * 6371000;
+	const tolerance = 2 * (location.accuracyMeters + clientLocation.accuracyMeters);
+	return distance < tolerance;
+    }
+    return {
+	sendPlaygrounds() {
+	    const relevantPlaygrounds = [];
+	    for (let i = 0; i < playgrounds.length; i++) {
+		if (closeEnough(playgrounds[i].location)) {
+		    relevantPlaygrounds.push(playgrounds[i]);
+		}
+	    }
+            console.log('Sent playgrounds: ' + JSON.stringify(relevantPlaygrounds));
+            socket.emit('playgrounds', JSON.stringify(relevantPlaygrounds));
+	},
+	closeEnough
+    };
+}
+
 app.get('/', (req, res) => {
     res.sendFile(__dirname + '/index.html');
 });
@@ -38,6 +70,9 @@ app.get('/playground', (req, res) => {
 });
 
 io.on('connection', (socket) => {
+    const connectionId = nextConnectionId;
+    nextConnectionId += 1;
+    
     console.log('a user connected: ' + socket.id);
 
     var room = undefined
@@ -45,6 +80,9 @@ io.on('connection', (socket) => {
 
     function joinRoom(newRoom) {
         leaveRoom();
+
+	delete playgroundListeners[connectionId];
+	
         room = newRoom;
         socket.join(room);
         console.log('Socket ' + socket.id + ' joined room: ' + room);
@@ -85,8 +123,12 @@ io.on('connection', (socket) => {
         lastConfigs[newRoom] = JSON.stringify(playgroundRequest.initialConfig);
         
         joinRoom(newRoom);
-        // Should ideally only emit to nearby players. TODO
-        io.emit('playgrounds', JSON.stringify(playgrounds));
+
+	Object.values(playgroundListeners).forEach(listener => {
+	    if (listener.closeEnough(playgroundMeta.location)) {
+		listener.sendPlaygrounds();
+	    }
+	});
     });
 
     socket.on('get playgrounds', (msg) => {
@@ -95,8 +137,9 @@ io.on('connection', (socket) => {
         const request = JSON.parse(msg);
         // This should ideally only report close ones. TODO
         console.log('Client requested playgrounds from: ' + msg);
-        console.log('Sent him JSON: ' + JSON.stringify(playgrounds));
-        socket.emit('playgrounds', JSON.stringify(playgrounds));
+	const listener = playgroundListener(socket, request);
+	listener.sendPlaygrounds();
+	playgroundListeners[connectionId] = listener;
     });
 
     socket.on('join playground', (playgroundRoom) => {
@@ -116,6 +159,7 @@ io.on('connection', (socket) => {
             console.log(details.description);
             console.log(details.context);
         }
+	delete playgroundListeners[connectionId];
         leaveRoom();
     });
 
