@@ -23,6 +23,7 @@ function removeOldPlaygrounds() {
     const now = Date.now();
     for (let i = playgrounds.length - 1; i >= 0; i--) {
         if (now > playgrounds[i].creationServerTimeMillis + playgroundLifeTime) {
+	    console.log('Removing playground: ' + JSON.stringify(playgrounds[i]));
             playgrounds.splice(i, 1);
         }
     }
