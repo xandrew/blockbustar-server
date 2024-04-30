@@ -35,7 +35,7 @@ app.get('/playground', (req, res) => {
 });
 
 io.on('connection', (socket) => {
-    console.log('a user connected');
+    console.log('a user connected: ' + socket.id);
 
     var room = undefined
     var location = undefined
@@ -44,14 +44,15 @@ io.on('connection', (socket) => {
         leaveRoom();
         room = newRoom;
         socket.join(room);
+        console.log('Socket ' + socket.id + ' joined room: ' + room);
         socket.emit('free blocks update', lastFreeBlocks[room]);
-        console.log('Sent free blocks update to new joiner: ' + lastFreeBlocks[room]);
+        console.log('Sent free blocks update to new joiner');
         socket.emit('new config', lastConfigs[room]);
         console.log('Sent config to new joiner: ' + lastConfigs[room]);
 
         if (physicsServer[room] === undefined) {
-            console.log('Asking new user to be server');
-            socket.emit('need server', '');
+            console.log('Asking new ' + socket.id + ' to be server');
+            socket.emit('need server', lastFreeBlocks[room]);
         }
     }
 
@@ -59,10 +60,11 @@ io.on('connection', (socket) => {
         if (room !== undefined) {
             socket.leave(room);
             if (physicsServer[room] === socket) {
-                console.log('he was server for: ' + room);
+                console.log(socket.id + ' was server for: ' + room);
                 physicsServer[room] = undefined;
-                io.to(room).emit('need server', '');
+                io.to(room).emit('need server', lastFreeBlocks[room]);
             }
+	    room = undefined;
         }
     }
     
@@ -103,7 +105,7 @@ io.on('connection', (socket) => {
     });
 
     socket.on('disconnect', (reason, details) => {
-        console.log('user disconnected');
+        console.log('user disconnected: ' + socket.id);
         console.log(reason);
         console.log(details);
         if (details !== undefined) {
@@ -115,7 +117,7 @@ io.on('connection', (socket) => {
     });
 
     socket.on('i am server', (_) => {
-        console.log('received serving offer for room: ' + room);
+        console.log('received serving offer from ' + socket.id + ' for room: ' + room);
         if ((room !== undefined) && (physicsServer[room] === undefined)) {
 	    physicsServer[room] = socket;
         } else {
@@ -131,7 +133,7 @@ io.on('connection', (socket) => {
             io.to(room).emit('free blocks update', msg);
         } else {
             console.log(
-                'Free blocks update from non-server-of-room - asking to back off');
+                'Free blocks update from non-server-of-room ' + socket.id + '- asking to back off');
             socket.emit('back off')
         }
     });

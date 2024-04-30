@@ -4,6 +4,8 @@
     <title>BlockBustar status page</title>
   </head>
   <body>
+    <pre id='socketId'>
+    </pre>
     <form id="configForm" action="">
       <p>Playground config</p>
       <textarea id="config" autocomplete="off" rows="8" cols="80">
@@ -26,6 +28,7 @@
       var configForm = document.getElementById('configForm');
       var configInput = document.getElementById('config');
       
+      const socketId = document.getElementById('socketId');
       const simulationTime = document.getElementById('simulationTime');
       const stateField = document.getElementById('state');
       const users = document.getElementById('users');
@@ -34,6 +37,7 @@
       const userMap = {};
 
       var socket = io();
+
       socket.emit('join playground', playgroundId);
 
       configForm.addEventListener('submit', function(e) {
@@ -42,6 +46,7 @@
       });
       
       socket.on('new config', function(msg) {
+	  socketId.innerText = socket.id;
           configInput.value = JSON.stringify(JSON.parse(msg), null, 2);
       });
 
