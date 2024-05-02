@@ -135,11 +135,18 @@ io.on('connection', (socket) => {
         removeOldPlaygrounds();
 
         const request = JSON.parse(msg);
-        // This should ideally only report close ones. TODO
+
         console.log('Client requested playgrounds from: ' + msg);
 	const listener = playgroundListener(socket, request);
 	listener.sendPlaygrounds();
 	playgroundListeners[connectionId] = listener;
+    });
+
+    socket.on('get all playgrounds', (msg) => {
+        removeOldPlaygrounds();
+        console.log('Client requested all playgrounds.');
+        console.log('Sent all playgrounds: ' + JSON.stringify(playgrounds));
+        socket.emit('playgrounds', JSON.stringify(playgrounds));
     });
 
     socket.on('join playground', (playgroundRoom) => {

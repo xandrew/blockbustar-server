@@ -24,14 +24,7 @@
       var input = document.getElementById('input');
       var messages = document.getElementById('messages');
 
-      /*form.addEventListener('submit', function(e) {
-	  e.preventDefault();
-	  if (input.value) {
-	      socket.emit('chat message', input.value);
-	      input.value = '';
-	  }
-          });*/
-      socket.emit('get playgrounds', '');
+      socket.emit('get all playgrounds', '');
       socket.on('playgrounds', function(msg) {
 	  messages.textContent = '';
 	  const ps = JSON.parse(msg);
